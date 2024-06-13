@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-
-namespace Chat.ChatHubs
+namespace Chat.ChatHubs    
 {
+    using ChatModels;
     public class ChatHub : Hub
     {
-        public async Task SendMessage(string userName, string Message, DateTime date)        
-        => await Clients.All.SendAsync("ReceiveMessage", userName, Message, date);
-        
+        public async Task SendMessage(Chat chat)        
+        => await Clients.All.SendAsync("ReceiveMessage", chat);        
     }
 }
