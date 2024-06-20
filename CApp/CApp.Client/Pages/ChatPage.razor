@@ -1,8 +1,9 @@
 ﻿@page "/chat"
+@using CApp.Client.ChatServices
+@using CAppModels
 @using Microsoft.AspNetCore.SignalR.Client
-@using ChatModels
+@inject NavigationManager navigationManager
 @rendermode InteractiveWebAssembly
-@inject NavigationManager NavManager
 <PageTitle>Chat App</PageTitle>
 
 
@@ -12,7 +13,7 @@
             <div class="card-header">DayımChat</div>
             <div class="card-body">
                 <ul class="list-group">
-                    @foreach(var chat in Chats)
+                    @foreach (var chat in Chats)
                     {
                         <li class="list-group-item mb-2">
                             @chat.DateTime.Date.ToString("dd/MMM/yy")
@@ -24,7 +25,7 @@
                     }
                 </ul>
                 <div class="mt-3">
-                    <EditForm Model="Chat" OnValidSubmit="SendMessageClicked">
+                    <EditForm Model="Chat" OnValidSubmit="SendChat">
                         <DataAnnotationsValidator />
                         <div class="vstack gap-1">
                             <InputText @bind-Value="Chat.UserName" class="form-control w-25" placeholder="Adınız" />
@@ -35,9 +36,9 @@
                 </div>
             </div>
             <div class="card-footer">
-                @if(!IsConnected)
+                @if (!IsConnected)
                 {
-                    <div class="alert alert-danger">Chat Disconnected</div>
+                    <div class="alert alert-danger">Sohbet Bağlanamadı</div>
                 }
                 else
                 {
@@ -48,43 +49,31 @@
     </div>
 </div>
 @code {
-    public static string? StoredUserName { get; set; }
-    private HubConnection? hubConnection;
-    private List<Chat> Chats = [];
-
     private Chat Chat = new();
+    private HubConnection? _hubConnection;
+    public List<Chat> Chats { get; set; } = [];
 
-    protected async override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-        .WithUrl(NavManager.ToAbsoluteUri("/chathub"))
-        .Build();
+        _hubConnection = new HubConnectionBuilder()
+           .WithUrl(navigationManager.ToAbsoluteUri("/chathub"))
+           .Build();
 
-        hubConnection.On<Chat>("ReceiveMessage", (Chat) =>
+        _hubConnection.On<Chat>("ReceiveMessage", (chat) =>
         {
-            Chats.Add(Chat);
+            Chats.Add(chat);
             InvokeAsync(() => StateHasChanged());
         });
-
-        await hubConnection.StartAsync();
+        await _hubConnection.StartAsync();
+        var httpClient = new HttpClient();
+        Chats = await httpClient.GetFromJsonAsync<List<Chat>>("https://localhost:44325/api/chat");
     }
 
-    private bool IsConnected =>
-    hubConnection!.State == HubConnectionState.Connected;
+    public bool IsConnected => _hubConnection!.State == HubConnectionState.Connected;
 
-    void Send()
+    public void SendChat()
     {
-        Chat.UserName ??= StoredUserName;
-        hubConnection!.SendAsync("SendMessage", Chat);
-    }
-
-    void SendMessageClicked()
-    {
-        Chat.DateTime = DateTime.Now;
-        if (Chat.UserName != "")
-            StoredUserName = Chat.UserName;
-
-        Send();        
-        Chat.Message = null;        
+        _hubConnection!.SendAsync("SendMessage", Chat);
+        Chat.Message = null;
     }
 }
