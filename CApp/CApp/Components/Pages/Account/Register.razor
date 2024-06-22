@@ -1,0 +1,76 @@
+﻿@page "/Account/Register"
+
+<h3>Register</h3>
+<div class="row">
+    <div class="col-md-4">
+        @(Message != "" ? Message : "")
+        <EditForm Model="registerModel" method="post" OnValidSubmit="RegisterAsync" FormName="register">
+            <DataAnnotationsValidator />
+            <h2>Yeni bir hesap oluştur.</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="registerModel.Fullname" class="form-control" autocomplete="new-name" aria-required="true" placeholder="John" />
+                <label for="name">Ad Soyad</label>
+                <ValidationMessage For="() => registerModel.Fullname" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="registerModel.Email" class="form-control" autocomplete="new-email" aria-required="true" placeholder="email" />
+                <label for="email">Email</label>
+                <ValidationMessage For="() => registerModel.Email" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="registerModel.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label for="password">Şifre</label>
+                <ValidationMessage For="() => registerModel.Password" class="text-danger" />
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText type="password" @bind-Value="registerModel.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                <label for="password">Şifre Tekrar</label>
+                <ValidationMessage For="() => registerModel.ConfirmPassword" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Kayıt Ol</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    string Message = "";
+    [SupplyParameterFromForm]
+    RegisterModel registerModel { get; set; } = new();
+
+    async Task RegisterAsync()
+    {
+        var appUser = new AppUser()
+            {
+                Fullname = registerModel.Fullname,
+                Email = registerModel.Email,
+                PasswordHash = registerModel.Password,
+                UserName = registerModel.Email
+            };
+
+        var result = await userManager.CreateAsync(appUser, registerModel.Password);
+        if (!result.Succeeded)
+        {
+            Message = "Hesap oluşturulurken bir hata oluştu";
+            return;
+        }
+        NavManager.NavigateTo("Account/Login");
+    }
+
+    public class RegisterModel
+    {
+        [Required]
+        public string Fullname { get; set; } = string.Empty;
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        public string Password { get; set; } = string.Empty;
+        [Compare(nameof(Password)), Required]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}

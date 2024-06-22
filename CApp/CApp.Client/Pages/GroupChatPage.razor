@@ -1,0 +1,146 @@
+﻿@page "/group-chat"
+@using CApp.Client.AppStates
+@using CApp.Client.ChatServices
+@attribute [Authorize]
+@using CAppModels.DTOs
+@using CAppModels.Models
+@using Microsoft.AspNetCore.Authorization
+@using CAppModels
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Security.Claims
+@rendermode InteractiveWebAssembly
+@inject NavigationManager navigationManager
+@inject HubConnectionService HubConnectionService
+@inject HttpClient httpclient
+@inject AvailableUserState state
+<PageTitle>Chat App</PageTitle>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header text-success">Çevrimiçi Kişiler</div>
+            <div class="card-body">
+                <ul class="list-group list-group-action">
+                    <AuthorizeView>
+                        @if (AvailableUsers != null)
+                        {
+                            foreach (var user in AvailableUsers)
+                            {
+                                var current = user;
+                                if (current.UserId != context.User.Claims.FirstOrDefault(_ => _.Type == ClaimTypes.NameIdentifier)!.Value)
+                                {
+                                    <li class="list-group-item list-group-item-action" style="cursor:pointer">
+                                        <a class="nav-link text-success" @onclick="() => ChatUser(current)">@user.Fullname</a>
+                                    </li>
+                                }
+
+                            }
+                        }
+                        @if (AvailableUsers!.Count == 0)
+                        {
+                            <span class="fw-bold text-success">Loading...</span>
+                        }
+                    </AuthorizeView>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="col-lg-9">
+    <div class="card-header sticky">Grup Sohbeti</div>
+    <div class="card" style="max-height:45vh;min-height:45vh; overflow:scroll;" id="chatContainer">
+        <AuthorizeView>
+            @foreach (var chat in GroupChats)
+            {
+                string position = chat.SenderName == context.User.Identity!.Name ? "align-self-end" : "align-self-start";
+                string style = chat.SenderName == context.User.Identity.Name ? "margin-right:6px" : "margin-left:10px";
+                string Name = chat.SenderName == context.User.Identity.Name ? "text-primary" : "text-info"!;
+                string Color = chat.SenderName == context.User.Identity.Name ? "text-primary" : "text-info"!;
+                <div class="card mt-1 mb-1 d-flex @position" style="width:500px; border-radius:10px; @style">
+                    <div class="card-header">
+                        <small class="@Color"><b>@Name</b></small><br />
+                        @chat.Message <br />
+                        <small class="text-muted">@chat.DateTime.ToString("dd MMM, yyyy hh:mm tt")</small>
+                    </div>
+                </div>
+            }
+        </AuthorizeView>
+    </div>
+</div>
+
+<div class="row mt-3 mb-2">
+    <div class="col-lg-4"></div>
+    <div class="col-lg-4"></div>
+    <div class="col-lg-4" style="position:relative; right:640px;">
+        <EditForm Model="GroupChat" OnValidSubmit="SendChatToGroup">
+            <DataAnnotationsValidator />
+            <InputTextArea @bind-Value="GroupChat.Message" class="form-control" style="width:703px; height:100px" placeholder="Mesaj" />
+            <button class="float-end btn btn-success mt-3" type="submit" style="position:relative; left:405px; width:120px; height:50px"> Gönder</button>
+        </EditForm>
+    </div>
+</div>
+<br /><br /><br /><br>
+<div class="row">
+    <div class="col-lg-12 d-flex justify-content-center" style="text-align:center">
+        @if (!HubConnectionService.IsConnected)
+        {
+            <div class="alert alert-danger">Sohbet Bağlanamadı!</div>
+        }
+        else
+        {
+            <div class="alert alert-success">Sohbet Bağlandı</div>
+        }
+    </div>
+</div>
+
+@code {
+    public List<AvailableUserDTO> AvailableUsers { get; set; } = [];
+    private GroupChat GroupChat { get; set; } = new();
+    private HubConnection? _hubConnection;
+    public List<GroupChatDTO> GroupChats { get; set; } = [];
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = HubConnectionService.GetHubConnection();
+
+        _hubConnection.On<GroupChatDTO>("ReceiveGroupMessages", (chat) =>
+        {
+            GroupChats.Add(chat);
+            InvokeAsync(() => StateHasChanged());
+        });
+
+        _hubConnection.On<List<AvailableUserDTO>>("NotifyAllClients", (users) =>
+        {
+            AvailableUsers = users;
+            InvokeAsync(() => StateHasChanged());
+        });
+
+        await GetCurrentAuthentication();
+        var httpClient = new HttpClient();
+        GroupChats = await httpClient.GetFromJsonAsync<List<GroupChatDTO>>("https://localhost:44325/api/chat/group-chats");
+    }
+
+    async Task GetCurrentAuthentication()
+    {
+        var user = (await AuthenticationState).User;
+        await _hubConnection!.SendAsync("AddAvailableUser", new AvailableUser()
+            { UserId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value });
+    }
+
+    public async void SendChatToGroup()
+    {
+        GroupChat.SenderId = (await AuthenticationState).User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value;
+        await _hubConnection!.SendAsync("SendMessageToGroup", GroupChat);
+        GroupChat = new();
+    }
+
+    private void ChatUser(AvailableUserDTO availableUserDTO)
+    {
+        state.SetStates(availableUserDTO.Fullname!, availableUserDTO.UserId!);
+        navigationManager.NavigateTo("/individual-chat");
+    }
+}

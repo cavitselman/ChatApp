@@ -1,7 +1,16 @@
-﻿@page "/"
+﻿@page "/home"
+@using System.Security.Claims
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+<PageTitle>CApp</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<h1>Merhaba, çekirdek almayı unutmayınız...</h1>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<AuthorizeView>
+    <div class="card-header">
+        Hoşgeldin
+        [@context.User.Claims.Where(f => f.Type == ClaimTypes.Name).Last().Value],
+        Artık sohbete katılabilirsiniz...
+    </div>
+</AuthorizeView>

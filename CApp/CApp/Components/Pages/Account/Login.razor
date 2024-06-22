@@ -1,0 +1,66 @@
+﻿@page "/Account/Login"
+
+<h2>Giriş yapmak için yerel bir hesap kullanın.</h2>
+<div class="row">
+    <div class="col-md-4">
+        @(message != ""? message :"")
+        <section>
+            <EditForm Model="loginModel" method="post" OnValidSubmit="LoginAsync" FormName="login">
+                <DataAnnotationsValidator />
+                @* <h2>Giriş yapmak için yerel bir hesap kullanın.</h2>
+                <hr /> *@
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="loginModel.Email" class="form-control" autocomplete="current-email" aria-required="true" placeholder="name@example.com" />
+                    <label for="email" class="form-label">Email</label>
+                    <ValidationMessage For="() => loginModel.Email" class="text-danger" />
+                </div>
+
+                <div class="form-floating mb-3">
+                    <InputText type="password" @bind-Value="loginModel.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="name@example.com" />
+                    <label for="password" class="form-label">Şifre</label>
+                    <ValidationMessage For="() => loginModel.Password" class="text-danger" />
+                </div>
+
+                <div>
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Giriş Yap</button>
+                </div>
+            </EditForm>
+        </section>
+    </div>
+</div>
+
+
+@code {
+    string message = "";
+    [SupplyParameterFromForm]
+    private LoginModel loginModel { get; set; } = new();
+    async Task LoginAsync()
+    {
+        var findUser = await userManager.FindByEmailAsync(loginModel.Email);
+        if(findUser == null)
+        {
+            message = "Üzgünüz, kullanıcı kayıtlı değil.";
+            return;
+        }
+
+        var result = await signInManager.CheckPasswordSignInAsync(findUser, loginModel.Password, false);
+        if(!result.Succeeded)
+        {
+            message = "Üzgünüz, geçersiz e-posta/şifre";
+            return;
+        }
+
+        await signInManager.PasswordSignInAsync(findUser, loginModel.Password, false, false);
+        NavManager.NavigateTo("/home", true);
+    }
+
+    public class LoginModel
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required]
+        public string Password { get; set; } = string.Empty;
+    }
+}

@@ -1,22 +1,26 @@
-using CApp.Authentication;
+﻿using CApp.Authentication;
 using CApp.ChatHubs;
+using CApp.Client.AppStates;
 using CApp.Client.ChatServices;
-using CApp.Client.Pages;
 using CApp.Components;
 using CApp.Data;
 using CApp.Repos;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
-builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<AvailableUserState>();
+builder.Services.AddScoped<HubConnectionService>();
 builder.Services.AddDbContext<Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<ChatRepo>();
@@ -34,6 +38,8 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
 }).AddIdentityCookies();
 
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, PersistingServer>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -53,10 +59,18 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/Account/Login");
+    return Task.CompletedTask;
+});
+
 app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(CApp.Client._Imports).Assembly);
 
-app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
+app.MapControllers();
+app.MapAdditionalIdentityEndpoints();
 app.Run();

@@ -1,5 +1,5 @@
 ﻿using CApp.Authentication;
-using CAppModels;
+using CAppModels.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace CApp.Data
@@ -10,6 +10,8 @@ namespace CApp.Data
         { 
         }
 
-        public DbSet<Chat> Chats { get; set; }
+        public DbSet<GroupChat> GroupChats { get; set; }
+        public DbSet<AvailableUser> AvailableUsers { get; set; }
+        public DbSet<IndividualChat> IndividualChats { get; set; }
     }
 }

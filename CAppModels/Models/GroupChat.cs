@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CAppModels
+namespace CAppModels.Models
 {
-    public class Chat
+    public class GroupChat
     {
         [Key]
         public int Id { get; set; }
         [Required]
-        public string? Message { get; set; }
+        public string? SenderId { get; set; }
         [Required]
-        public string? UserName { get; set; }
+        public string? Message { get; set; }
         public DateTime DateTime { get; set; }
     }
 }

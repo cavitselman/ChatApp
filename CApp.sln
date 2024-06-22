@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CApp", "CApp\CApp\CApp.csproj", "{A47E131E-8FBA-4012-8E54-0E15073D2029}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CApp", "CApp\CApp\CApp.csproj", "{A47E131E-8FBA-4012-8E54-0E15073D2029}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CApp.Client", "CApp\CApp.Client\CApp.Client.csproj", "{4CE05DE7-6454-4438-9DDB-ED04ED657B91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CApp.Client", "CApp\CApp.Client\CApp.Client.csproj", "{4CE05DE7-6454-4438-9DDB-ED04ED657B91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CAppModels", "CAppModels\CAppModels.csproj", "{32241EEC-33F5-44B3-8B46-F4E01344E48C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CAppModels", "CAppModels\CAppModels.csproj", "{32241EEC-33F5-44B3-8B46-F4E01344E48C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

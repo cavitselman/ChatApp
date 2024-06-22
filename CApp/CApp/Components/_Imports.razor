@@ -9,3 +9,10 @@
 @using CApp
 @using CApp.Client
 @using CApp.Components
+
+@using System.ComponentModel.DataAnnotations;
+@using CApp.Authentication
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AppUser> userManager
+@inject SignInManager<AppUser> signInManager
+@inject NavigationManager NavManager
