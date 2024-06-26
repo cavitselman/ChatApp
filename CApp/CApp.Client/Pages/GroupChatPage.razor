@@ -56,7 +56,7 @@
             {
                 string position = chat.SenderName == context.User.Identity!.Name ? "align-self-end" : "align-self-start";
                 string style = chat.SenderName == context.User.Identity.Name ? "margin-right:6px" : "margin-left:10px";
-                string Name = chat.SenderName == context.User.Identity.Name ? "text-primary" : "text-info"!;
+                string Name = chat.SenderName == context.User.Identity.Name ? "Sen" : chat.SenderName!;
                 string Color = chat.SenderName == context.User.Identity.Name ? "text-primary" : "text-info"!;
                 <div class="card mt-1 mb-1 d-flex @position" style="width:500px; border-radius:10px; @style">
                     <div class="card-header">
@@ -74,7 +74,7 @@
     <div class="col-lg-4"></div>
     <div class="col-lg-4"></div>
     <div class="col-lg-4" style="position:relative; right:640px;">
-        <EditForm Model="GroupChat" OnValidSubmit="SendChatToGroup">
+        <EditForm Model="GroupChats" OnValidSubmit="SendChatToGroup">
             <DataAnnotationsValidator />
             <InputTextArea @bind-Value="GroupChat.Message" class="form-control" style="width:703px; height:100px" placeholder="Mesaj" />
             <button class="float-end btn btn-success mt-3" type="submit" style="position:relative; left:405px; width:120px; height:50px"> Gönder</button>

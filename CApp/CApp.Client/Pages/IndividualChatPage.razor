@@ -11,25 +11,25 @@
 @inject AvailableUserState state
 
 <div class="row">
-    <div class="col-lg-12">        
-            <div class="card-header sticky">@state.Fullname</div>
+    <div class="col-lg-12">
+        <div class="card-header sticky">@state.Fullname</div>
         <div class="card" style="max-height:65vh;min-height:65vh; overflow:scroll;" id="chatContainer">
-                    <AuthorizeView>
+            <AuthorizeView>
                 @foreach (var chat in IndividualChats)
                 {
                     string position = chat.SenderName == context.User.Identity!.Name ? "align-self-end" : "align-self-start";
                     string style = chat.SenderName == context.User.Identity.Name ? "margin-right:6px" : "margin-left:10px";
-                    string Name = chat.SenderName == context.User.Identity.Name ? "You" : chat.SenderName!;
+                    string Name = chat.SenderName == context.User.Identity.Name ? "Sen" : chat.SenderName!;
                     string Color = chat.SenderName == context.User.Identity.Name ? "text-primary" : "text-info"!;
                     <div class="card mt-1 mb-1 d-flex @position" style="width:500px; border-radius:10px; @style">
                         <div class="card-header">
                             <small class="@Color"><b>@Name</b></small><br />
                             @chat.Message <br />
-                            <small class="text-muted">@chat.Date.ToString("dd MMM, yyyy hh:mm tt")</small>
+                            <small class="text-muted">@DateTime.Now.ToString("dd-MMM-yyyy HH:mm")</small>
                         </div>
                     </div>
                 }
-                    </AuthorizeView>               
+            </AuthorizeView>
         </div>
     </div>
 </div>
@@ -38,7 +38,7 @@
     <div class="col-lg-4"></div>
     <div class="col-lg-4"></div>
     <div class="col-lg-4">
-        <EditForm Model="IndividualChatModel" OnValidSubmit="SendIndividualChat">
+        <EditForm Model="IndividualChats" OnValidSubmit="SendIndividualChat">
             <DataAnnotationsValidator />
             <InputTextArea @bind-Value="IndividualChatModel.Message" class="form-control" placeholder="Mesaj" />
             <button class="float-end btn btn-success mt-3" type="submit"> Gönder</button>
@@ -59,13 +59,12 @@
     </div>
 </div>
 
-@code{
-
+@code {
+    private IndividualChat IndividualChatModel { get; set; } = new();
+    private HubConnection? _hubConnection;
+    private List<IndividualChatDTO> IndividualChats { get; set; } = [];
     [CascadingParameter]
     public Task<AuthenticationState> authenticationState { get; set; }
-    private List<IndividualChatDTO> IndividualChats { get; set; } = [];
-    private IndividualChat IndividualChatModel { get; set; } = new();
-    private HubConnection _hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,6 +99,7 @@
                 SenderName = (await authenticationState).User.Identity!.Name,
                 ReceiverName = state.Fullname
             };
+        IndividualChats.Add(data);
     }
 }
 
