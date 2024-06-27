@@ -1,7 +1,5 @@
 ﻿using CApp.Repos;
-using CAppModels;
 using CAppModels.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CApp.Controllers
