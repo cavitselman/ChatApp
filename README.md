@@ -12,10 +12,9 @@ A chat application where the user can send both group and individual messages.
 - Identity
 - SignalR
 - HTML / CSS
-- JavaScript
 
 ## Design Patterns Used
 
-- Repository
+- Data Transfer Object (DTO)
 
 ![](CApp/CApp/wwwroot/img.jpg)
